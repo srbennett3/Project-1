@@ -7,6 +7,10 @@ import nextquest.model.Game;
 import nextquest.model.GameVideo;
 import nextquest.model.Genre;
 import nextquest.model.VideoType;
+import nextquest.dal.UserDao;
+import nextquest.dal.DeveloperDao;
+import nextquest.model.User;
+import nextquest.model.Developer;
 
 import java.math.BigDecimal;
 import java.sql.SQLException;
@@ -24,6 +28,8 @@ public class Inserter {
 		GameDao gameDao = GameDao.getInstance();
 		GenreDao genreDao = GenreDao.getInstance();
 		GameVideoDao gameVideoDao = GameVideoDao.getInstance();
+		UserDao userDao = UserDao.getInstance();
+		DeveloperDao developerDao = DeveloperDao.getInstance();
 
 		// CREATE / READ / UPDATE / DELETE a Genre.
 		Genre genre = new Genre("TestGenre");
@@ -77,5 +83,39 @@ public class Inserter {
 		gameVideoDao.delete(video);
 		gameDao.delete(game);
 		System.out.println("Cleaned up test GameVideo and Game.");
+		
+
+		// CREATE / READ / UPDATE / DELETE a User.
+		User user = new User("NextQuestTestUser", "test@example.com");
+		user = userDao.create(user);
+		System.out.format("Created user: id=%d username=%s%n",
+			user.getUserId(), user.getUsername());
+
+		User readUser = userDao.getUserById(user.getUserId());
+		System.out.format("Read user: id=%d username=%s email=%s%n",
+			readUser.getUserId(), readUser.getUsername(), readUser.getEmail());
+
+		user = userDao.updateEmail(user, "updated@example.com");
+		System.out.format("Updated user email=%s%n", user.getEmail());
+
+		userDao.delete(user);
+		System.out.format("Deleted user id=%d%n", user.getUserId());
+
+		// CREATE / READ / UPDATE / DELETE a Developer.
+		Developer developer = new Developer("NextQuestTestDeveloper");
+		developer = developerDao.create(developer);
+		System.out.format("Created developer: id=%d name=%s%n",
+			developer.getDeveloperId(), developer.getName());
+
+		Developer readDeveloper = developerDao.getDeveloperById(developer.getDeveloperId());
+		System.out.format("Read developer: id=%d name=%s%n",
+			readDeveloper.getDeveloperId(), readDeveloper.getName());
+
+		developer = developerDao.updateName(developer, "NextQuestTestDeveloperUpdated");
+		System.out.format("Updated developer name=%s%n", developer.getName());
+
+		developerDao.delete(developer);
+		System.out.format("Deleted developer id=%d%n", developer.getDeveloperId());
+
 	}
 }
