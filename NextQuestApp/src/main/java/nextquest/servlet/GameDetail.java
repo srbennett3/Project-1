@@ -2,8 +2,12 @@ package nextquest.servlet;
 
 import nextquest.dal.GameDao;
 import nextquest.dal.GameVideoDao;
+import nextquest.dal.SteamRecommendationDao;
+import nextquest.dal.SteamReviewDao;
 import nextquest.model.Game;
 import nextquest.model.GameVideo;
+import nextquest.model.SteamRecommendation;
+import nextquest.model.SteamReview;
 import nextquest.model.VideoType;
 
 import java.io.IOException;
@@ -24,14 +28,19 @@ import javax.servlet.http.HttpServletResponse;
  */
 @WebServlet("/gamedetail")
 public class GameDetail extends HttpServlet {
+	private static final int STEAM_DATA_PAGE_SIZE = 100;
 
 	protected GameDao gameDao;
 	protected GameVideoDao gameVideoDao;
+	protected SteamRecommendationDao steamRecommendationDao;
+	protected SteamReviewDao steamReviewDao;
 
 	@Override
 	public void init() throws ServletException {
 		gameDao = GameDao.getInstance();
 		gameVideoDao = GameVideoDao.getInstance();
+		steamRecommendationDao = SteamRecommendationDao.getInstance();
+		steamReviewDao = SteamReviewDao.getInstance();
 	}
 
 	@Override
@@ -48,11 +57,13 @@ public class GameDetail extends HttpServlet {
 		}
 
 		try {
-			int appId = Integer.parseInt(appIdParam);
+			int appId = Integer.parseInt(appIdParam.trim());
 			Game game = gameDao.getGameById(appId);
 			req.setAttribute("game", game);
 
 			if (game != null) {
+				loadSteamData(req, appId, messages);
+
 				List<GameVideo> trailers = gameVideoDao.getVideosByAppIdAndType(
 					appId, VideoType.TRAILER);
 				List<GameVideo> screenshots = gameVideoDao.getVideosByAppIdAndType(
@@ -86,5 +97,50 @@ public class GameDetail extends HttpServlet {
 		}
 
 		req.getRequestDispatcher("/GameDetail.jsp").forward(req, resp);
+	}
+
+	private void loadSteamData(HttpServletRequest req, int appId,
+			Map<String, String> messages) throws SQLException {
+		int reviewCount = steamReviewDao.getSteamReviewCountByAppId(appId);
+		int recommendationCount =
+			steamRecommendationDao.getSteamRecommendationCountByAppId(appId);
+		int reviewPages = pageCount(reviewCount);
+		int recommendationPages = pageCount(recommendationCount);
+		int reviewPage = parsePage(req.getParameter("reviewPage"), "reviewPage", messages);
+		int recommendationPage = parsePage(
+			req.getParameter("recommendationPage"), "recommendationPage", messages);
+		reviewPage = Math.min(reviewPage, reviewPages);
+		recommendationPage = Math.min(recommendationPage, recommendationPages);
+
+		List<SteamReview> reviews = steamReviewDao.getSteamReviewsByAppId(appId,
+			(reviewPage - 1) * STEAM_DATA_PAGE_SIZE, STEAM_DATA_PAGE_SIZE);
+		List<SteamRecommendation> recommendations =
+			steamRecommendationDao.getSteamRecommendationsByAppId(appId,
+				(recommendationPage - 1) * STEAM_DATA_PAGE_SIZE, STEAM_DATA_PAGE_SIZE);
+
+		req.setAttribute("steamReviews", reviews);
+		req.setAttribute("steamReviewCount", reviewCount);
+		req.setAttribute("steamReviewPage", reviewPage);
+		req.setAttribute("steamReviewPages", reviewPages);
+		req.setAttribute("steamRecommendations", recommendations);
+		req.setAttribute("steamRecommendationCount", recommendationCount);
+		req.setAttribute("steamRecommendationPage", recommendationPage);
+		req.setAttribute("steamRecommendationPages", recommendationPages);
+	}
+
+	private int pageCount(int totalRecords) {
+		return Math.max(1, (totalRecords + STEAM_DATA_PAGE_SIZE - 1) / STEAM_DATA_PAGE_SIZE);
+	}
+
+	private int parsePage(String value, String parameterName, Map<String, String> messages) {
+		if (value == null || value.trim().isEmpty()) {
+			return 1;
+		}
+		try {
+			return Math.max(1, Integer.parseInt(value.trim()));
+		} catch (NumberFormatException e) {
+			messages.put("error", parameterName + " must be a number.");
+			return 1;
+		}
 	}
 }

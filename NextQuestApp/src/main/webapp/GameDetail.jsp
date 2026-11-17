@@ -41,6 +41,83 @@
 			<a href="videocreate">Add a GameVideo</a>
 		</p>
 
+		<h3>Steam Recommendations</h3>
+		<p><c:out value="${steamRecommendationCount}"/> recommendations for this game.
+			Page <c:out value="${steamRecommendationPage}"/> of
+			<c:out value="${steamRecommendationPages}"/>.</p>
+		<c:choose>
+			<c:when test="${empty steamRecommendations}">
+				<p>No Steam recommendations for this game.</p>
+			</c:when>
+			<c:otherwise>
+				<table border="1">
+					<tr>
+						<th>Recommendation ID</th>
+						<th>Author ID</th>
+						<th>Recommended</th>
+						<th>Hours played</th>
+						<th>Date</th>
+					</tr>
+					<c:forEach var="r" items="${steamRecommendations}">
+						<tr>
+							<td><c:out value="${r.steamRecommendationId}"/></td>
+							<td><c:out value="${r.authorId}"/></td>
+							<td><c:out value="${r.isRecommended}"/></td>
+							<td><c:out value="${r.hoursPlayed}"/></td>
+							<td><fmt:formatDate value="${r.recommendationDate}" pattern="yyyy-MM-dd"/></td>
+						</tr>
+					</c:forEach>
+				</table>
+				<p>
+					<c:if test="${steamRecommendationPage > 1}">
+						<a href="gamedetail?appId=${game.appId}&amp;recommendationPage=${steamRecommendationPage - 1}&amp;reviewPage=${steamReviewPage}">Previous recommendations</a>
+					</c:if>
+					<c:if test="${steamRecommendationPage < steamRecommendationPages}">
+						<a href="gamedetail?appId=${game.appId}&amp;recommendationPage=${steamRecommendationPage + 1}&amp;reviewPage=${steamReviewPage}">Next recommendations</a>
+					</c:if>
+				</p>
+			</c:otherwise>
+		</c:choose>
+
+		<h3>Steam Reviews</h3>
+		<p><c:out value="${steamReviewCount}"/> reviews for this game.
+			Page <c:out value="${steamReviewPage}"/> of <c:out value="${steamReviewPages}"/>.</p>
+		<c:choose>
+			<c:when test="${empty steamReviews}">
+				<p>No Steam reviews for this game.</p>
+			</c:when>
+			<c:otherwise>
+				<table border="1">
+					<tr>
+						<th>Review ID</th>
+						<th>Author Steam ID</th>
+						<th>Recommended</th>
+						<th>Hours played</th>
+						<th>Date</th>
+						<th>Language</th>
+					</tr>
+					<c:forEach var="r" items="${steamReviews}">
+						<tr>
+							<td><c:out value="${r.steamReviewId}"/></td>
+							<td><c:out value="${r.authorSteamId}"/></td>
+							<td><c:out value="${r.isRecommended}"/></td>
+							<td><c:out value="${r.hoursPlayed}"/></td>
+							<td><fmt:formatDate value="${r.reviewDate}" pattern="yyyy-MM-dd"/></td>
+							<td><c:out value="${r.language}"/></td>
+						</tr>
+					</c:forEach>
+				</table>
+				<p>
+					<c:if test="${steamReviewPage > 1}">
+						<a href="gamedetail?appId=${game.appId}&amp;reviewPage=${steamReviewPage - 1}&amp;recommendationPage=${steamRecommendationPage}">Previous reviews</a>
+					</c:if>
+					<c:if test="${steamReviewPage < steamReviewPages}">
+						<a href="gamedetail?appId=${game.appId}&amp;reviewPage=${steamReviewPage + 1}&amp;recommendationPage=${steamRecommendationPage}">Next reviews</a>
+					</c:if>
+				</p>
+			</c:otherwise>
+		</c:choose>
+
 		<h3>Trailers</h3>
 		<c:choose>
 			<c:when test="${empty trailers}">
