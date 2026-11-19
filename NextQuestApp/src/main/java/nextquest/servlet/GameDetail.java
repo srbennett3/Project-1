@@ -1,6 +1,8 @@
 package nextquest.servlet;
 
 import nextquest.dal.GameDao;
+import nextquest.dal.GameDeveloperDao;
+import nextquest.dal.GameGenreDao;
 import nextquest.dal.GameVideoDao;
 import nextquest.dal.SteamRecommendationDao;
 import nextquest.dal.SteamReviewDao;
@@ -34,6 +36,8 @@ public class GameDetail extends HttpServlet {
 	protected GameVideoDao gameVideoDao;
 	protected SteamRecommendationDao steamRecommendationDao;
 	protected SteamReviewDao steamReviewDao;
+	protected GameGenreDao gameGenreDao;
+	protected GameDeveloperDao gameDeveloperDao;
 
 	@Override
 	public void init() throws ServletException {
@@ -41,6 +45,8 @@ public class GameDetail extends HttpServlet {
 		gameVideoDao = GameVideoDao.getInstance();
 		steamRecommendationDao = SteamRecommendationDao.getInstance();
 		steamReviewDao = SteamReviewDao.getInstance();
+		gameGenreDao = GameGenreDao.getInstance();
+		gameDeveloperDao = GameDeveloperDao.getInstance();
 	}
 
 	@Override
@@ -63,6 +69,8 @@ public class GameDetail extends HttpServlet {
 
 			if (game != null) {
 				loadSteamData(req, appId, messages);
+				req.setAttribute("gameGenres", gameGenreDao.getGameGenresByAppId(appId));
+				req.setAttribute("gameDevelopers", gameDeveloperDao.getGameDevelopersByAppId(appId));
 
 				List<GameVideo> trailers = gameVideoDao.getVideosByAppIdAndType(
 					appId, VideoType.TRAILER);

@@ -12,7 +12,7 @@
 </head>
 <body>
 	<h1>Game Detail</h1>
-	<p><a href="genres">Manage Genres</a></p>
+	<p><a href="index.jsp">Home</a> | <a href="genres">Manage Genres</a></p>
 	<p><a href="reviews">Manage Reviews</a></p>
 	<p><a href="surveys">Manage Recommendation Surveys</a></p>
 	<p><span style="color:red"><b>${messages.error}</b></span></p>
@@ -39,8 +39,21 @@
 			<c:if test="${game.mac}">Mac </c:if>
 			<c:if test="${game.linux}">Linux </c:if>
 		</p>
+		<p>Genres:
+			<c:forEach var="gg" items="${gameGenres}" varStatus="s">
+				<a href="genregames?genreId=${gg.genre.genreId}"><c:out value="${gg.genre.name}"/></a><c:if test="${not s.last}">, </c:if>
+			</c:forEach>
+			(<a href="gamegenres?appId=${game.appId}">edit</a>)
+		</p>
+		<p>Developers:
+			<c:forEach var="gd" items="${gameDevelopers}" varStatus="s">
+				<a href="developergames?developerId=${gd.developer.developerId}"><c:out value="${gd.developer.name}"/></a><c:if test="${not s.last}">, </c:if>
+			</c:forEach>
+			(<a href="gamedevelopers?appId=${game.appId}">edit</a>)
+		</p>
 		<p>
 			<a href="videocreate">Add a GameVideo</a>
+			| <a href="reviews?filterAppId=${game.appId}">NextQuest reviews of this game</a>
 		</p>
 
 		<h3>Steam Recommendations</h3>
