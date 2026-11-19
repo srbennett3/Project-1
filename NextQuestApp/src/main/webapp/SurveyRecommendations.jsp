@@ -26,8 +26,7 @@
 			play style <b><c:out value="${empty survey.playStyle ? 'any' : survey.playStyle}"/></b>.
 			<a href="surveyupdate?surveyId=${survey.surveyId}">Change answers</a>
 		</p>
-		<p>Ranked by share of positive Steam ratings (games with at least 50 ratings),
-		   leaving out games this user already saved or reviewed.</p>
+		<p>Top-rated games on Steam with at least 50 reviews. Games you've already saved or reviewed won't show up here.</p>
 
 		<c:choose>
 			<c:when test="${empty games}">
