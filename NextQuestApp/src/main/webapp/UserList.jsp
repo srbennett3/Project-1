@@ -9,6 +9,7 @@
 </head>
 <body>
 	<h1>Users</h1>
+	<p><a href="index.jsp">Home</a></p>
 	<p><span style="color:green"><b>${messages.success}</b></span></p>
 	<p><span style="color:red"><b>${messages.error}</b></span></p>
 
@@ -38,6 +39,9 @@
 					<th>email</th>
 					<th></th>
 					<th></th>
+					<th></th>
+					<th></th>
+					<th></th>
 				</tr>
 				<c:forEach var="u" items="${users}">
 					<tr>
@@ -46,6 +50,9 @@
 						<td><c:out value="${u.email}"/></td>
 						<td><a href="userupdate?userId=${u.userId}">Update</a></td>
 						<td><a href="userdelete?userId=${u.userId}">Delete</a></td>
+						<td><a href="savedgames?userId=${u.userId}">Saved games</a></td>
+						<td><a href="reviews?filterUserId=${u.userId}">Reviews</a></td>
+						<td><a href="surveys?filterUserId=${u.userId}">Surveys</a></td>
 					</tr>
 				</c:forEach>
 			</table>
