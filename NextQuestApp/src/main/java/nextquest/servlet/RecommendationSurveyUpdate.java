@@ -45,10 +45,12 @@ public class RecommendationSurveyUpdate extends HttpServlet {
 		Map<String, String> messages = new HashMap<String, String>();
 		req.setAttribute("messages", messages);
 		String idParam = req.getParameter("surveyId");
-		if (idParam == null || idParam.trim().isEmpty()) {
-			messages.put("error", "Please provide a survey id.");
-		} else {
-			try {
+		try {
+			// Users, genres, platforms, and play styles for the dropdowns.
+			SurveyForm.loadChoices(req);
+			if (idParam == null || idParam.trim().isEmpty()) {
+				messages.put("error", "Please provide a survey id.");
+			} else {
 				// Load the survey for this surveyId.
 				RecommendationSurvey survey = surveyDao.getRecommendationSurveyById(
 					Integer.parseInt(idParam.trim()));
@@ -56,12 +58,12 @@ public class RecommendationSurveyUpdate extends HttpServlet {
 					messages.put("error", "Survey not found.");
 				}
 				req.setAttribute("survey", survey);
-			} catch (NumberFormatException e) {
-				messages.put("error", "Survey id must be a number.");
-			} catch (SQLException e) {
-				e.printStackTrace();
-				throw new IOException(e);
 			}
+		} catch (NumberFormatException e) {
+			messages.put("error", "Survey id must be a number.");
+		} catch (SQLException e) {
+			e.printStackTrace();
+			throw new IOException(e);
 		}
 		req.getRequestDispatcher("/RecommendationSurveyUpdate.jsp").forward(req, resp);
 	}
@@ -78,6 +80,7 @@ public class RecommendationSurveyUpdate extends HttpServlet {
 		req.setAttribute("messages", messages);
 		String idParam = req.getParameter("surveyId");
 		try {
+			SurveyForm.loadChoices(req);
 			int id = Integer.parseInt(idParam == null ? "" : idParam.trim());
 			RecommendationSurvey existing = surveyDao.getRecommendationSurveyById(id);
 			if (existing == null) {
@@ -89,12 +92,17 @@ public class RecommendationSurveyUpdate extends HttpServlet {
 				// Load the user before the update.
 				User user = userDao.getUserById(userId);
 				if (user == null) {
-					messages.put("error", "User not found.");
+					messages.put("error", "User id=" + userId + " not found.");
 				} else {
+					// An answer must be on the list, blank, or the survey's old answer,
+					// so surveys written before the dropdowns can still be saved.
 					RecommendationSurvey survey = new RecommendationSurvey(id, user,
-						parseText(req.getParameter("preferredGenre")),
-						parseText(req.getParameter("preferredPlatform")),
-						parseText(req.getParameter("playStyle")),
+						SurveyForm.genre(req.getParameter("preferredGenre"),
+							existing.getPreferredGenre()),
+						SurveyForm.platform(req.getParameter("preferredPlatform"),
+							existing.getPreferredPlatform()),
+						SurveyForm.playStyle(req.getParameter("playStyle"),
+							existing.getPlayStyle()),
 						existing.getUpdatedAt());
 					// Write every column for this survey_id.
 					survey = surveyDao.update(survey);
@@ -104,21 +112,12 @@ public class RecommendationSurveyUpdate extends HttpServlet {
 			}
 		} catch (NumberFormatException e) {
 			messages.put("error", "Survey id and userId must be numbers.");
+		} catch (IllegalArgumentException e) {
+			messages.put("error", e.getMessage());
 		} catch (SQLException e) {
 			e.printStackTrace();
 			throw new IOException(e);
 		}
 		req.getRequestDispatcher("/RecommendationSurveyUpdate.jsp").forward(req, resp);
-	}
-
-	/**
-	 * Read a text field from the form.
-	 * value is a String. Returns that text, or null when value is blank.
-	 */
-	private String parseText(String value) {
-		if (value == null || value.trim().isEmpty()) {
-			return null;
-		}
-		return value.trim();
 	}
 }

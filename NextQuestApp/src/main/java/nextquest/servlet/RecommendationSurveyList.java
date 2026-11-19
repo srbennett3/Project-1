@@ -19,6 +19,7 @@ import javax.servlet.http.HttpServletResponse;
 
 /**
  * Lists and creates recommendation surveys.
+ * ?filterUserId= shows only that user's surveys and preselects the user in the form.
  */
 @WebServlet("/surveys")
 public class RecommendationSurveyList extends HttpServlet {
@@ -36,7 +37,7 @@ public class RecommendationSurveyList extends HttpServlet {
 	}
 
 	/**
-	 * Show every recommendation survey.
+	 * Show every recommendation survey, or one user's surveys.
 	 * req is an HttpServletRequest. resp is an HttpServletResponse.
 	 * Returns nothing. Throws ServletException and IOException.
 	 */
@@ -45,14 +46,7 @@ public class RecommendationSurveyList extends HttpServlet {
 			throws ServletException, IOException {
 		Map<String, String> messages = new HashMap<String, String>();
 		req.setAttribute("messages", messages);
-		try {
-			// Load every survey.
-			List<RecommendationSurvey> surveys = surveyDao.getAllRecommendationSurveys();
-			req.setAttribute("surveys", surveys);
-		} catch (SQLException e) {
-			e.printStackTrace();
-			throw new IOException(e);
-		}
+		loadPage(req, messages);
 		req.getRequestDispatcher("/RecommendationSurveyList.jsp").forward(req, resp);
 	}
 
@@ -69,49 +63,83 @@ public class RecommendationSurveyList extends HttpServlet {
 		String userIdParam = req.getParameter("userId");
 
 		if (userIdParam == null || userIdParam.trim().isEmpty()) {
-			messages.put("error", "userId is required.");
+			messages.put("error", "Please choose a user.");
 		} else {
 			try {
 				int userId = Integer.parseInt(userIdParam.trim());
-				// Load the user before the insert.
+				// Keep the chosen user selected if the page comes back with an error.
+				req.setAttribute("selectedUserId", userId);
+				// Load the user before the insert. The dropdown only offers existing
+				// users, but a stale page can still send an id that was deleted.
 				User user = userDao.getUserById(userId);
 				if (user == null) {
-					messages.put("error", "User not found.");
+					messages.put("error", "User id=" + userId + " not found.");
 				} else {
 					RecommendationSurvey survey = new RecommendationSurvey(user,
-						parseText(req.getParameter("preferredGenre")),
-						parseText(req.getParameter("preferredPlatform")),
-						parseText(req.getParameter("playStyle")));
+						SurveyForm.genre(req.getParameter("preferredGenre"), null),
+						SurveyForm.platform(req.getParameter("preferredPlatform"), null),
+						SurveyForm.playStyle(req.getParameter("playStyle"), null));
 					// Insert the survey and read the new survey_id.
 					survey = surveyDao.create(survey);
 					messages.put("success", "Created survey id=" + survey.getSurveyId());
+					req.setAttribute("createdSurvey", survey);
 				}
 			} catch (NumberFormatException e) {
 				messages.put("error", "userId must be a number.");
+			} catch (IllegalArgumentException e) {
+				messages.put("error", e.getMessage());
 			} catch (SQLException e) {
 				e.printStackTrace();
 				throw new IOException(e);
 			}
 		}
 
+		loadPage(req, messages);
+		req.getRequestDispatcher("/RecommendationSurveyList.jsp").forward(req, resp);
+	}
+
+	/**
+	 * Put the form choices and the survey list on the request.
+	 * req is an HttpServletRequest. messages holds the page messages.
+	 * Returns nothing. Throws IOException.
+	 */
+	private void loadPage(HttpServletRequest req, Map<String, String> messages)
+			throws IOException {
 		try {
-			List<RecommendationSurvey> surveys = surveyDao.getAllRecommendationSurveys();
+			SurveyForm.loadChoices(req);
+			Integer filterUserId = parseFilter(req.getParameter("filterUserId"), messages);
+			List<RecommendationSurvey> surveys;
+			if (filterUserId == null) {
+				// Load every survey.
+				surveys = surveyDao.getAllRecommendationSurveys();
+			} else {
+				// Load only this user's surveys, and preselect the user in the form.
+				surveys = surveyDao.getRecommendationSurveysByUserId(filterUserId);
+				req.setAttribute("filterUserId", filterUserId);
+				if (req.getAttribute("selectedUserId") == null) {
+					req.setAttribute("selectedUserId", filterUserId);
+				}
+			}
 			req.setAttribute("surveys", surveys);
 		} catch (SQLException e) {
 			e.printStackTrace();
 			throw new IOException(e);
 		}
-		req.getRequestDispatcher("/RecommendationSurveyList.jsp").forward(req, resp);
 	}
 
 	/**
-	 * Read a text field from the form.
-	 * value is a String. Returns that text, or null when value is blank.
+	 * Read the filterUserId parameter.
+	 * value is a String. Returns the user id, or null when blank or not a number.
 	 */
-	private String parseText(String value) {
+	private Integer parseFilter(String value, Map<String, String> messages) {
 		if (value == null || value.trim().isEmpty()) {
 			return null;
 		}
-		return value.trim();
+		try {
+			return Integer.parseInt(value.trim());
+		} catch (NumberFormatException e) {
+			messages.putIfAbsent("error", "filterUserId must be a number.");
+			return null;
+		}
 	}
 }

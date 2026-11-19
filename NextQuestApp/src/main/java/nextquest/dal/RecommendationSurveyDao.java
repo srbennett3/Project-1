@@ -1,5 +1,6 @@
 package nextquest.dal;
 
+import nextquest.model.Game;
 import nextquest.model.RecommendationSurvey;
 import nextquest.model.User;
 
@@ -19,6 +20,16 @@ public class RecommendationSurveyDao {
 	protected ConnectionManager connectionManager;
 
 	private static RecommendationSurveyDao instance = null;
+
+	/** Platforms the survey form offers. Each one is also a BOOLEAN column on Game. */
+	public static final String[] PLATFORMS = {"windows", "mac", "linux"};
+
+	/** Play styles the survey form offers: free = price 0, budget = under $10,
+	 * acclaimed = Metacritic 80+, any = no filter. */
+	public static final String[] PLAY_STYLES = {"any", "free", "budget", "acclaimed"};
+
+	/** A game needs this many Steam ratings before it can be recommended. */
+	private static final int MIN_RATINGS = 50;
 
 	/**
 	 * Store a ConnectionManager. Returns nothing.
@@ -151,6 +162,125 @@ public class RecommendationSurveyDao {
 			}
 		}
 		return surveys;
+	}
+
+	/**
+	 * Read every RecommendationSurvey of one user.
+	 * userId is an int. Returns a List of RecommendationSurvey. Throws SQLException.
+	 */
+	public List<RecommendationSurvey> getRecommendationSurveysByUserId(int userId)
+			throws SQLException {
+		List<RecommendationSurvey> surveys = new ArrayList<RecommendationSurvey>();
+		String select =
+			"SELECT survey_id,user_id,preferred_genre,preferred_platform,play_style,updated_at " +
+			"FROM RecommendationSurvey WHERE user_id=? ORDER BY survey_id;";
+		try (Connection connection = connectionManager.getConnection();
+				PreparedStatement statement = connection.prepareStatement(select)) {
+			// Read the surveys that belong to this user_id.
+			statement.setInt(1, userId);
+			try (ResultSet results = statement.executeQuery()) {
+				while (results.next()) {
+					surveys.add(readSurvey(results));
+				}
+			}
+		}
+		return surveys;
+	}
+
+	/**
+	 * Recommend games for one survey: games in the preferred genre, on the preferred
+	 * platform, matching the play style, with at least MIN_RATINGS Steam ratings, that
+	 * the user has not saved or reviewed yet. Best share of positive ratings first.
+	 * A blank or unknown genre, platform, or play style does not filter.
+	 * survey is a RecommendationSurvey. limit is an int. Returns a List of Game.
+	 * Throws SQLException.
+	 */
+	public List<Game> getRecommendedGames(RecommendationSurvey survey, int limit)
+			throws SQLException {
+		StringBuilder select = new StringBuilder(
+			"SELECT g.app_id,g.name,g.release_date,g.price,g.header_image," +
+			"g.metacritic_score,g.positive_ratings,g.negative_ratings," +
+			"g.windows,g.mac,g.linux FROM Game g " +
+			"WHERE g.positive_ratings + g.negative_ratings >= ? " +
+			"AND g.app_id NOT IN (SELECT app_id FROM SavedGame WHERE user_id=?) " +
+			"AND g.app_id NOT IN (SELECT app_id FROM Review WHERE user_id=?) ");
+		List<Object> params = new ArrayList<Object>();
+		params.add(MIN_RATINGS);
+		params.add(survey.getUser().getUserId());
+		params.add(survey.getUser().getUserId());
+
+		String genre = survey.getPreferredGenre();
+		if (genre != null && !genre.trim().isEmpty()) {
+			select.append("AND EXISTS (SELECT 1 FROM GameGenre gg " +
+				"INNER JOIN Genre ge ON ge.genre_id=gg.genre_id " +
+				"WHERE gg.app_id=g.app_id AND ge.name=?) ");
+			params.add(genre.trim());
+		}
+
+		// The platform becomes a column name, so it is only used when it is on the list.
+		String platform = survey.getPreferredPlatform();
+		for (String allowed : PLATFORMS) {
+			if (allowed.equalsIgnoreCase(platform == null ? "" : platform.trim())) {
+				select.append("AND g.").append(allowed).append("=TRUE ");
+			}
+		}
+
+		String playStyle = survey.getPlayStyle() == null ? "" : survey.getPlayStyle().trim();
+		if ("free".equalsIgnoreCase(playStyle)) {
+			select.append("AND g.price=0 ");
+		} else if ("budget".equalsIgnoreCase(playStyle)) {
+			select.append("AND g.price<10 ");
+		} else if ("acclaimed".equalsIgnoreCase(playStyle)) {
+			select.append("AND g.metacritic_score>=80 ");
+		}
+
+		select.append("ORDER BY g.positive_ratings / (g.positive_ratings + g.negative_ratings) DESC," +
+			"g.positive_ratings + g.negative_ratings DESC LIMIT ?;");
+		params.add(limit);
+
+		List<Game> games = new ArrayList<Game>();
+		try (Connection connection = connectionManager.getConnection();
+				PreparedStatement statement = connection.prepareStatement(select.toString())) {
+			// Bind the filters in the order they were added.
+			for (int i = 0; i < params.size(); i++) {
+				statement.setObject(i + 1, params.get(i));
+			}
+			try (ResultSet results = statement.executeQuery()) {
+				while (results.next()) {
+					games.add(readGame(results));
+				}
+			}
+		}
+		return games;
+	}
+
+	/**
+	 * Build a Game from the current row of getRecommendedGames.
+	 * results is a ResultSet. Returns a Game. Throws SQLException.
+	 */
+	private Game readGame(ResultSet results) throws SQLException {
+		return new Game(results.getInt("app_id"), results.getString("name"),
+			results.getDate("release_date"), results.getBigDecimal("price"),
+			results.getString("header_image"), readInteger(results, "metacritic_score"),
+			readInteger(results, "positive_ratings"), readInteger(results, "negative_ratings"),
+			readBoolean(results, "windows"), readBoolean(results, "mac"),
+			readBoolean(results, "linux"));
+	}
+
+	/**
+	 * Read a nullable INT column. Returns an Integer, or null for SQL NULL.
+	 */
+	private Integer readInteger(ResultSet results, String column) throws SQLException {
+		int value = results.getInt(column);
+		return results.wasNull() ? null : value;
+	}
+
+	/**
+	 * Read a nullable BOOLEAN column. Returns a Boolean, or null for SQL NULL.
+	 */
+	private Boolean readBoolean(ResultSet results, String column) throws SQLException {
+		boolean value = results.getBoolean(column);
+		return results.wasNull() ? null : value;
 	}
 
 	/**
