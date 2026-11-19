@@ -13,6 +13,8 @@
 <body>
 	<h1>Game Detail</h1>
 	<p><a href="genres">Manage Genres</a></p>
+	<p><a href="reviews">Manage Reviews</a></p>
+	<p><a href="surveys">Manage Recommendation Surveys</a></p>
 	<p><span style="color:red"><b>${messages.error}</b></span></p>
 
 	<form action="gamedetail" method="get">
