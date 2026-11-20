@@ -73,6 +73,9 @@ private final String schema   = "NextQuest";
 
 ## 5. Demo walkthrough
 
+The home page (<http://localhost:8080/NextQuestApp/>) has a **Demo shortcuts** section with one-click links to
+the CS2 detail page, the CS2 trailer, and the "Add a game video for CS2" form.
+
 ### 5.1 `Genre` CRUD
 
 | Step | URL | What to show |
@@ -88,7 +91,7 @@ private final String schema   = "NextQuest";
 
 | Step | URL | What to show |
 |---|---|---|
-| **Create** | `/videocreate` | Form fields: `appId`, `Name`, `url`, `videoUrl`, `video_type` (trailer / gameplay / screenshot) → **Create**. Green line: **`Created video id=409599`** |
+| **Create** | `/videocreate?appId=730` | Form fields: `appId` (pre-filled `730`), `Name`, `url`, `videoUrl`, `video_type` (trailer / gameplay / screenshot) → **Create**. Green line: **`Created video id=409599`** |
 | **Read** | `/gamedetail?appId=730&videoId=409599` | Game detail page lists the videos for the game; the selected one (name `PM4 Demo Video`) is highlighted |
 | **Update (load)** | `/videoupdate?videoId=409599` | Form pre-filled |
 | **Update (submit)** | same | Rename to `PM4 Demo Video Updated` → **Update**. Green line: **`Updated video id=409599`** |
@@ -96,7 +99,8 @@ private final String schema   = "NextQuest";
 | **Delete (submit)** | same | **Delete**. Green line: **`Deleted video id=409599`** |
 
 `/videocreate`, `/videoupdate` and `/videodelete` also accept a `videoId` / `appId` query parameter so a
-single screenshot can show the form and its result.
+single screenshot can show the form and its result. The Game Detail page links to the create form with the
+`appId` already filled in, and every GameVideo page links back to the detail page of the game it belongs to.
 
 ### 5.3 Advanced feature — trailer plays inside the app
 
