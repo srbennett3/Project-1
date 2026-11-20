@@ -12,14 +12,23 @@
 </head>
 <body>
 	<h1>Create GameVideo</h1>
-	<p><a href="gamedetail">Back to Game Detail</a></p>
+	<p>
+		<c:choose>
+			<c:when test="${not empty param.appId}">
+				<a href="gamedetail?appId=${fn:escapeXml(param.appId)}">Back to Game Detail</a>
+			</c:when>
+			<c:otherwise>
+				<a href="index.jsp">Back to Home</a>
+			</c:otherwise>
+		</c:choose>
+	</p>
 	<p><span style="color:green"><b>${messages.success}</b></span></p>
 	<p><span style="color:red"><b>${messages.error}</b></span></p>
 
 	<form action="videocreate" method="post">
 		<p>
 			<label for="appId">appId</label>
-			<input id="appId" name="appId" value="">
+			<input id="appId" name="appId" value="${fn:escapeXml(param.appId)}">
 		</p>
 		<p>
 			<label for="name">Name</label>

@@ -12,7 +12,16 @@
 </head>
 <body>
 	<h1>Update GameVideo</h1>
-	<p><a href="gamedetail">Back to Game Detail</a></p>
+	<p>
+		<c:choose>
+			<c:when test="${not empty gameVideo.game.appId}">
+				<a href="gamedetail?appId=${gameVideo.game.appId}">Back to Game Detail</a>
+			</c:when>
+			<c:otherwise>
+				<a href="index.jsp">Back to Home</a>
+			</c:otherwise>
+		</c:choose>
+	</p>
 	<p><span style="color:green"><b>${messages.success}</b></span></p>
 	<p><span style="color:red"><b>${messages.error}</b></span></p>
 

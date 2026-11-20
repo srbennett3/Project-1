@@ -52,7 +52,7 @@
 			(<a href="gamedevelopers?appId=${game.appId}">edit</a>)
 		</p>
 		<p>
-			<a href="videocreate">Add a GameVideo</a>
+			<a href="videocreate?appId=${game.appId}">Add a GameVideo</a>
 			| <a href="reviews">NextQuest reviews</a>
 		</p>
 

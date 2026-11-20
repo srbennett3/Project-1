@@ -24,6 +24,13 @@
 		<li><a href="videocreate">Add a game video</a></li>
 	</ul>
 
+	<h2>Demo shortcuts</h2>
+	<ul>
+		<li><a href="gamedetail?appId=730&amp;videoId=1">Play the Counter-Strike 2 launch trailer</a></li>
+		<li><a href="gamedetail?appId=730">Counter-Strike 2 game detail page</a></li>
+		<li><a href="videocreate?appId=730">Add a game video for Counter-Strike 2</a></li>
+	</ul>
+
 	<h2>Players</h2>
 	<ul>
 		<li><a href="users">Users</a></li>
