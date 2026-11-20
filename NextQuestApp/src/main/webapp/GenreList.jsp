@@ -32,14 +32,13 @@
 		</c:when>
 		<c:otherwise>
 			<table border="1">
-				<tr><th>genre_id</th><th>name</th><th></th><th></th><th></th></tr>
+				<tr><th>genre_id</th><th>name</th><th></th><th></th></tr>
 				<c:forEach var="g" items="${genres}">
 					<tr>
 						<td><c:out value="${g.genreId}"/></td>
 						<td><c:out value="${g.name}"/></td>
 						<td><a href="genreupdate?genreId=${g.genreId}">Update</a></td>
 						<td><a href="genredelete?genreId=${g.genreId}">Delete</a></td>
-						<td><a href="genregames?genreId=${g.genreId}">Games</a></td>
 					</tr>
 				</c:forEach>
 			</table>

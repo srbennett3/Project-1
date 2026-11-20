@@ -32,7 +32,7 @@
 					<c:forEach var="gg" items="${gameGenres}">
 						<tr>
 							<td><c:out value="${gg.genre.genreId}"/></td>
-							<td><a href="genregames?genreId=${gg.genre.genreId}"><c:out value="${gg.genre.name}"/></a></td>
+							<td><c:out value="${gg.genre.name}"/></td>
 							<td><a href="gamegenreupdate?appId=${game.appId}&amp;genreId=${gg.genre.genreId}">Change</a></td>
 							<td><a href="gamegenredelete?appId=${game.appId}&amp;genreId=${gg.genre.genreId}">Remove</a></td>
 						</tr>

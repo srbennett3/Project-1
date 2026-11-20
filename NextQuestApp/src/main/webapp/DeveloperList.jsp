@@ -31,14 +31,13 @@
 		</c:when>
 		<c:otherwise>
 			<table border="1">
-				<tr><th>developer_id</th><th>name</th><th></th><th></th><th></th></tr>
+				<tr><th>developer_id</th><th>name</th><th></th><th></th></tr>
 				<c:forEach var="d" items="${developers}">
 					<tr>
 						<td><c:out value="${d.developerId}"/></td>
 						<td><c:out value="${d.name}"/></td>
 						<td><a href="developerupdate?developerId=${d.developerId}">Update</a></td>
 						<td><a href="developerdelete?developerId=${d.developerId}">Delete</a></td>
-						<td><a href="developergames?developerId=${d.developerId}">Games</a></td>
 					</tr>
 				</c:forEach>
 			</table>

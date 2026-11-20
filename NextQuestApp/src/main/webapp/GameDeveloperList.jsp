@@ -32,7 +32,7 @@
 					<c:forEach var="gd" items="${gameDevelopers}">
 						<tr>
 							<td><c:out value="${gd.developer.developerId}"/></td>
-							<td><a href="developergames?developerId=${gd.developer.developerId}"><c:out value="${gd.developer.name}"/></a></td>
+							<td><c:out value="${gd.developer.name}"/></td>
 							<td><a href="gamedeveloperupdate?appId=${game.appId}&amp;developerId=${gd.developer.developerId}">Change</a></td>
 							<td><a href="gamedeveloperdelete?appId=${game.appId}&amp;developerId=${gd.developer.developerId}">Remove</a></td>
 						</tr>

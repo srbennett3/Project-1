@@ -41,19 +41,19 @@
 		</p>
 		<p>Genres:
 			<c:forEach var="gg" items="${gameGenres}" varStatus="s">
-				<a href="genregames?genreId=${gg.genre.genreId}"><c:out value="${gg.genre.name}"/></a><c:if test="${not s.last}">, </c:if>
+				<c:out value="${gg.genre.name}"/><c:if test="${not s.last}">, </c:if>
 			</c:forEach>
 			(<a href="gamegenres?appId=${game.appId}">edit</a>)
 		</p>
 		<p>Developers:
 			<c:forEach var="gd" items="${gameDevelopers}" varStatus="s">
-				<a href="developergames?developerId=${gd.developer.developerId}"><c:out value="${gd.developer.name}"/></a><c:if test="${not s.last}">, </c:if>
+				<c:out value="${gd.developer.name}"/><c:if test="${not s.last}">, </c:if>
 			</c:forEach>
 			(<a href="gamedevelopers?appId=${game.appId}">edit</a>)
 		</p>
 		<p>
 			<a href="videocreate">Add a GameVideo</a>
-			| <a href="reviews?filterAppId=${game.appId}">NextQuest reviews of this game</a>
+			| <a href="reviews">NextQuest reviews</a>
 		</p>
 
 		<h3>Steam Recommendations</h3>
